@@ -27,11 +27,11 @@ jobs:
             setup: brew install -q osslsigncode
           - os: windows-latest
             setup: |
-              export PATH=$PATH:C:/msys64/usr/bin:C:/msys64/mingw64/bin
+              export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
 
     steps:
       - name: "Try it"
         run: |
           ${{ matrix.setup }}
           which osslsigncode
-          osslsigncode -v
+          osslsigncode --version
