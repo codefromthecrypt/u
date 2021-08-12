@@ -9,10 +9,6 @@ on:
     branches: master
   workflow_dispatch:
 
-defaults:
-  run:  # use bash for all operating systems unless overridden
-    shell: bash
-
 jobs:
   msi:
     name: "Test Windows Installer build (${{ matrix.os }})"
@@ -21,15 +17,15 @@ jobs:
       fail-fast: false  # don't fail fast as sometimes failures are operating system specific
       matrix:
         include:
-          - os: ubuntu-latest
-            setup: sudo apt update -qq && sudo apt install -qq -y osslsigncode
-          - os: macos-latest
-            setup: brew install -q osslsigncode
+#          - os: ubuntu-latest
+#            setup: sudo apt update -qq && sudo apt install -qq -y osslsigncode
+#          - os: macos-latest
+#            setup: brew install -q osslsigncode
           - os: windows-latest
             setup: |
-              /c/msys64/usr/bin/bash -lc "pacman -Syu --noconfirm"
-              /c/msys64/usr/bin/bash -lc "pacman -Syy mingw-w64-{i686,x86_64}-osslsigncode --noconfirm"
-              export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
+              $env:Path += ";C:\msys64\usr\bin"
+              pacman -Syu --noconfirm
+              pacman -Syy --noconfirm mingw-w64-{i686,x86_64}-osslsigncode --noconfirm
 
     steps:
       - name: "Try it"
