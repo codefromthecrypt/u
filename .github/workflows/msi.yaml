@@ -22,13 +22,14 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            setup: brew install -q osslsigncode
+            setup: sudo apt update -qq && sudo apt install -qq -y osslsigncode
           - os: macos-latest
             setup: brew install -q osslsigncode
           - os: windows-latest
             setup: |
+              /c/msys64/usr/bin/bash -lc "pacman -Syu --noconfirm"
+              /c/msys64/usr/bin/bash -lc "pacman -Syy mingw-w64-{i686,x86_64}-osslsigncode --noconfirm"
               export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
-              bash -lc "pacman -Syy mingw-w64-{i686,x86_64}-osslsigncode --noconfirm"
 
     steps:
       - name: "Try it"
