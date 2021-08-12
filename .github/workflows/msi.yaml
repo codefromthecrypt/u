@@ -28,7 +28,6 @@ jobs:
           - os: windows-latest
             setup: |
               export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
-              bash -lc "pacman -Syu --noconfirm"
               bash -lc "pacman -Syy mingw-w64-{i686,x86_64}-osslsigncode --noconfirm"
 
     steps:
