@@ -23,15 +23,14 @@ jobs:
         include:
           - os: ubuntu-latest
             # https://packages.ubuntu.com/focal/osslsigncode is old, but apt is less time than brew
-            setup: |
-              sudo apt update -qq && sudo apt install -qq -y osslsigncode
+            setup: sudo apt update -qq && sudo apt install -qq -y osslsigncode
           - os: macos-latest
             setup: brew install -q osslsigncode
           - os: windows-latest
-            setup: |  # windows binaries are attached to releases
+            setup: |  # pacman is awkward, but windows binaries are attached to releases
               osslsigncode_version=2.1
               gh release download -R mtrojnar/osslsigncode ${osslsigncode_version} -p '*windows.zip'
-              unzip *.zip -D /tmp && rm *.zip
+              unzip *.zip -d /tmp && rm *.zip
               export PATH=$PATH:/tmp/osslsigncode_${osslsigncode_version}_windows
 
     steps:
