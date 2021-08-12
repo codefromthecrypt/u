@@ -22,14 +22,15 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            setup: sudo apt update -qq && sudo apt install -qq -y wixl msitools
+            setup: sudo apt update -qq && sudo apt install -qq -y osslsigncode
           - os: macos-latest
-            setup: brew install -q msitools
+            setup: brew install -q osslsigncode
           - os: windows-latest
-            setup: echo "$WIX\\bin" >> $GITHUB_PATH
+            setup: pacman -Syu mingw-w64-x86_64-make --noconfirm
 
     steps:
       - name: "Try it"
-        run: |  # ${{ matrix.setup }}
+        run: |
+          ${{ matrix.setup }}
           which osslsigncode
           osslsigncode -v
