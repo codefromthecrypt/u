@@ -29,7 +29,8 @@ jobs:
           - os: windows-latest
             setup: |  # windows binaries are attached to releases
               osslsigncode_version=2.1
-              gh release download -D /tmp -R mtrojnar/osslsigncode ${osslsigncode_version} -p '*windows.zip'
+              GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} gh release download \
+                -D /tmp -R mtrojnar/osslsigncode ${osslsigncode_version} -p '*windows.zip'
               unzip *.zip
               export PATH=$PATH:/tmp/osslsigncode_${osslsigncode_version}_windows
 
