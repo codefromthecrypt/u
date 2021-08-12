@@ -1,0 +1,35 @@
+---
+name: "msi"
+
+on:
+  push:
+    tags: ''
+    branches: master
+  pull_request:
+    branches: master
+  workflow_dispatch:
+
+defaults:
+  run:  # use bash for all operating systems unless overridden
+    shell: bash
+
+jobs:
+  msi:
+    name: "Test Windows Installer build (${{ matrix.os }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false  # don't fail fast as sometimes failures are operating system specific
+      matrix:
+        include:
+          - os: ubuntu-latest
+            setup: sudo apt update -qq && sudo apt install -qq -y wixl msitools
+          - os: macos-latest
+            setup: brew install -q msitools
+          - os: windows-latest
+            setup: echo "$WIX\\bin" >> $GITHUB_PATH
+
+    steps:
+      - name: "Try it"
+        run: |  # ${{ matrix.setup }}
+          which osslsigncode
+          osslsigncode -v
