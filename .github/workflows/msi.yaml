@@ -25,7 +25,7 @@ jobs:
             setup: |
               $env:Path += ";C:\msys64\usr\bin"
               pacman -Syu --noconfirm
-              pacman -Syy --noconfirm mingw-w64-{i686,x86_64}-osslsigncode --noconfirm
+              pacman -Syy --noconfirm mingw-w64-x86_64-osslsigncode --noconfirm
 
     steps:
       - name: "Try it"
