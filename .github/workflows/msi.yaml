@@ -9,6 +9,9 @@ on:
     branches: master
   workflow_dispatch:
 
+env:  # echo "mary had a little lamb"|base64
+  TETRATELABS_CERT_BASE64: "bWFyeSBoYWQgYSBsaXR0bGUgbGFtYgo="
+
 defaults:
   run:  # use bash for all operating systems unless overridden
     shell: bash
@@ -30,8 +33,8 @@ jobs:
             setup: |  # pacman is awkward, but windows binaries are attached to releases
               osslsigncode_version=2.1
               gh release download -R mtrojnar/osslsigncode ${osslsigncode_version} -p '*windows.zip'
-              unzip *.zip -d /tmp && rm *.zip
-              export PATH=$PATH:/tmp/osslsigncode_${osslsigncode_version}_windows
+              unzip *.zip -d ${HOME} && rm *.zip
+              export PATH=$PATH:${HOME}/osslsigncode_${osslsigncode_version}_windows
 
     steps:
       - name: "Try it"
@@ -39,5 +42,7 @@ jobs:
           ${{ matrix.setup }}
           which osslsigncode
           osslsigncode --version
+          echo ${{ env.TETRATELABS_CERT_BASE64 }} | base64 --decode > ${HOME}/tetratelabs-cert.pfx
+          cat ${HOME}/tetratelabs-cert.pfx
         env:  # `gh` requires auth even on public releases
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
