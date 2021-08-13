@@ -33,15 +33,38 @@ jobs:
             setup: |  # pacman is awkward, but windows binaries are attached to releases
               osslsigncode_version=2.1
               gh release download -R mtrojnar/osslsigncode ${osslsigncode_version} -p '*windows.zip'
-              unzip *.zip -d ${HOME} && rm *.zip
-              export PATH=$PATH:${HOME}/osslsigncode_${osslsigncode_version}_windows
+              unzip -qq *.zip && rm *.zip
+              export PATH=$PATH:./osslsigncode_${osslsigncode_version}_windows
 
     steps:
-      - name: "Try it"
+      - name: "Download unsigned func-e"
+        run: |
+          gh release download -R tetratelabs/func-e v0.6.0 -p '*_windows_amd64.zip'
+          unzip -qq *.zip func-e.exe && rm *.zip
+          test -f func-e.exe
+        env: # `gh` requires auth even on public releases
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Setup osslsigncode"
         run: |
           ${{ matrix.setup }}
           which osslsigncode
-          echo ${{ env.TETRATELABS_CERT_BASE64 }} | base64 --decode > ${HOME}/tetratelabs-cert.pfx
-          cat ${HOME}/tetratelabs-cert.pfx
         env:  # `gh` requires auth even on public releases
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Download Windows code signing certificate"
+        id: p12
+        uses: timheuer/base64-to-file@v1
+        with:
+          fileName: 'windows-certificate.pfx'
+          encodedString: ${{ secrets.WINDOWS_CODESIGN_P12_BASE64 }}
+
+      - name: "Sign func-e.exe"
+        run: |
+          osslsigncode sign -h sha256 -pkcs12 ${WINDOWS_CODESIGN_P12} -pass "${WINDOWS_CODESIGN_PASSWORD}" \
+              -n "func-e makes running Envoy® easy" -i https://func-e.io -t http://timestamp.digicert.com \
+              -in func-e.exe -out func-e-signed.exe && mv func-e-signed.exe func-e.exe
+        env:
+          WINDOWS_CODESIGN_P12: ${{ steps.p12.outputs.filePath }}
+          WINDOWS_CODESIGN_PASSWORD: ${{ secrets.WINDOWS_CODESIGN_PASSWORD }}
+
