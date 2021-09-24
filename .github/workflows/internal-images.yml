@@ -5,6 +5,9 @@ name: foo
 on:
   workflow_dispatch:
 
+env:  # As of 2021-08-05 images come with go 1.15 https://github.com/actions/virtual-environments/tree/main/images
+  GO_VERSION: "1.17.0"
+
 jobs:
   # Github Action Runners don't support all operating systems we may need to test. Below ensures
   # we run on the intended minimum platforms. Note: we also use Travis for arm64+ubuntu.
@@ -17,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false  # don't fail fast as sometimes failures are operating system specific
       matrix:
-        container: ["ghcr.io/codefromthecrypt/func-e-internal:centos8"]
+        container: ["ghcr.io/${{ github.repository_owner }}/func-e-internal:centos8"]
 
     steps:
       - name: "Checkout"
