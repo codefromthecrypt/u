@@ -57,4 +57,4 @@ jobs:
           #   - assign via https://github.com/organizations/tetratelabs/settings/secrets/actions
           #   - needs repo:status, public_repo, write:packages, delete:packages
           secrets: |
-            GIT_AUTH_TOKEN=${{ secrets.GHCR_TOKEN }}
+            GIT_AUTH_TOKEN=${{ secrets.GIT_AUTH_TOKEN }}
