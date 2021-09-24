@@ -49,7 +49,7 @@ jobs:
           push: true
           context: .
           platforms: linux/amd64,linux/arm64 # arm64 is run only by Travis. See RATIONALE.md
-          tags: ghcr.io/${{ github.repository_owner }}/func-e-internal:${{ matrix.target-tag }}
+          tags: ghcr.io/${{ github.repository_owner }}/func-e-internal:${{ matrix.target_tag }}
           # Same as doing this locally: echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_TOKEN}" --password-stdin
           # GHCR_TOKEN=<hex token value>
           #   - pushes Docker images to ghcr.io
