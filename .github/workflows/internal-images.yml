@@ -13,7 +13,7 @@ on:
 #
 # To troubleshoot, run locally with docker and install go directly. Ex:
 # ```bash
-# $ docker run -ti -v $PWD:/func-e --rm registry.centos.org/centos:8
+# $ docker run -ti -v $PWD:/func-e --rm centos:8
 # [root@d37da4601545 /]# cd /func-e
 # [root@d37da4601545 func-e]# eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.17 bash)"
 # now execute your setup commands!
@@ -24,8 +24,8 @@ jobs:
       matrix:
         # Be precise in tag versions to improve reproducibility
         include:
-          - dockerfile: |  # use a non rate-limited base layer
-              FROM registry.centos.org/centos:8
+          - dockerfile: |  # Don't install golang as the version often changes
+              FROM centos:8
               RUN yum install -y --quiet make which git gcc && yum clean all
             target_tag: centos8
     runs-on: ubuntu-latest
