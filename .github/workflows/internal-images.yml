@@ -35,3 +35,4 @@ jobs:
         run: |
           go version
           uname -a
+          cat /etc/centos-release
