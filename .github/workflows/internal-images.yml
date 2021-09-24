@@ -1,65 +1,34 @@
 # yamllint --format github .github/workflows/internal-images.yml
 ---
-name: internal-images
+name: foo
 
-# Refresh the tags once a day. This limits impact of rate-limited images. See RATIONALE.md
 on:
-  schedule:
-    - cron: "23 3 * * *"
-  workflow_dispatch:  # Allows manual refresh
+  workflow_dispatch:
 
-# This builds images and pushes them to ghcr.io/tetratelabs/func-e-internal:$tag
-# Using these in tests and as a parent (FROM) avoids docker.io rate-limits particularly on pull requests.
-#
-# To troubleshoot, run locally with docker and install go directly. Ex:
-# ```bash
-# $ docker run -ti -v $PWD:/func-e --rm centos:8
-# [root@d37da4601545 /]# cd /func-e
-# [root@d37da4601545 func-e]# eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.17 bash)"
-# now execute your setup commands!
-# ```
 jobs:
-  build-and-push-images:
-    strategy:
-      matrix:
-        # Be precise in tag versions to improve reproducibility
-        include:
-          - dockerfile: |  # Don't install golang as the version often changes
-              FROM centos:8
-              RUN yum install -y --quiet make which git gcc && yum clean all
-            target_tag: centos8
+  # Github Action Runners don't support all operating systems we may need to test. Below ensures
+  # we run on the intended minimum platforms. Note: we also use Travis for arm64+ubuntu.
+  #
+  # Use only images from internal-images.yaml to avoid Docker rate limits and slow install steps.
+  test-e2e:
+    name: "Run e2e tests via containers (${{ matrix.container }})"
     runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false  # don't fail fast as sometimes failures are operating system specific
+      matrix:
+        container: ["ghcr.io/codefromthecrypt/func-e-internal:centos8"]
+
     steps:
-      # Same as doing this locally: echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_TOKEN}" --password-stdin
-      - name: Login into GitHub Container Registry
-        uses: docker/login-action@v1
+      - name: "Checkout"
+        uses: actions/checkout@v2
+
+      - name: "Install Go"
+        uses: actions/setup-go@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          # GHCR_TOKEN=<hex token value>
-          #   - pushes Docker images to ghcr.io
-          #   - create via https://github.com/settings/tokens
-          #   - assign via https://github.com/organizations/tetratelabs/settings/secrets/actions
-          #   - needs repo:status, public_repo, write:packages, delete:packages
-          password: ${{ secrets.GIT_AUTH_TOKEN }}
+          go-version: ${{ env.GO_VERSION }}
 
-      # We need QEMU and Buildx for multi-platform (amd64+arm64) image push. See RATIONALE.md
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v1
-
-      - name: Setup Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Write Dockerfile
+      - name: "Test"
         run: |
-          cat > Dockerfile <<'EOF'
-          ${{ matrix.dockerfile }}
-          EOF
-
-      - name: Build and push
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          context: .
-          platforms: linux/amd64,linux/arm64 # arm64 is run only by Travis. See RATIONALE.md
-          tags: ghcr.io/${{ github.repository_owner }}/func-e-internal:${{ matrix.target_tag }}
+          go version
+          uname -a
