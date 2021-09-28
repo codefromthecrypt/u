@@ -1,38 +1,62 @@
 # yamllint --format github .github/workflows/internal-images.yml
 ---
-name: foo
+name: internal-images
 
+# Refresh the tags once a day. This limits impact of rate-limited images. See RATIONALE.md
 on:
-  workflow_dispatch:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:  # Allows manual refresh
 
-env:  # As of 2021-08-05 images come with go 1.15 https://github.com/actions/virtual-environments/tree/main/images
-  GO_VERSION: "1.17.0"
+env:  # Update this prior to requiring a higher minor version in go.mod
+  GO_VERSION: "1.17"  # Latest patch
 
+# This builds images and pushes them to ghcr.io/tetratelabs/func-e-internal:$tag
+# Using these in tests and as a parent (FROM) avoids docker.io rate-limits particularly on pull requests.
+#
+# To troubleshoot, run locally with docker and install go directly. Ex:
+# ```bash
+# $ docker run -ti -v $PWD:/func-e --rm centos:8
+# [root@d37da4601545 /]# cd /func-e
+# now execute your setup commands!
+# ```
 jobs:
-  # Github Action Runners don't support all operating systems we may need to test. Below ensures
-  # we run on the intended minimum platforms. Note: we also use Travis for arm64+ubuntu.
-  #
-  # Use only images from internal-images.yaml to avoid Docker rate limits and slow install steps.
-  test-e2e:
-    name: "Run e2e tests via containers (${{ matrix.container }})"
-    runs-on: ubuntu-latest
-    container: ${{ matrix.container }}
+  build-and-push-images:
     strategy:
-      fail-fast: false  # don't fail fast as sometimes failures are operating system specific
       matrix:
-        container: ["ghcr.io/${{ github.repository_owner }}/func-e-internal:centos8"]
-
+        # Be precise in tag versions to improve reproducibility
+        include:
+          # This installs the dependencies needed to build func-e including the latest patch of go
+          # CentOS' root user shell is /bin/bash so go env is set via ~/.bashrc
+          #
+          # Note: This uses gimme so that we can install the latest patch of go without knowing what
+          # that is, or parsing it on our own. This is more flexible and removes update maintenance
+          # we'd have if we hard coded a specific patch. See https://github.com/travis-ci/gimme
+          - dockerfile: |
+              FROM centos:8
+              RUN yum install -y --quiet make which git gcc && yum clean all
+              RUN curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=${{ env.GO_VERSION }}.x bash
+              RUN cat ~/.gimme/envs/latest.env >> ~/.bashrc
+              ENTRYPOINT ["/bin/bash"]
+            target_tag: centos8
+    runs-on: ubuntu-latest
     steps:
-      - name: "Checkout"
-        uses: actions/checkout@v2
+      # We need QEMU and Buildx for multi-platform (amd64+arm64) image push. See RATIONALE.md
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v1
 
-      - name: "Install Go"
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ env.GO_VERSION }}
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v1
 
-      - name: "Test"
+      - name: Write Dockerfile
         run: |
-          go version
-          uname -a
-          cat /etc/centos-release
+          cat > Dockerfile <<'EOF'
+          ${{ matrix.dockerfile }}
+          EOF
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64  # arm64 is run only by Travis. See RATIONALE.md
+          tags: ghcr.io/${{ github.repository_owner }}/func-e-internal:${{ matrix.target_tag }}
