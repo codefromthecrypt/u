@@ -39,7 +39,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |  # ex GOROOT_1_17_X64 -> 1.17
           ver=$(echo ${{ env.GOROOT }}| cut -d_ -f2,3| tr _ .)
-          root=$(ls -d /Users/runner/hostedtoolcache/go/${ver}*|sort -n|tail -1|xargs basename)
+          root=$(ls -d /Users/runner/hostedtoolcache/go/${ver}*|sort -n|tail -1)
           echo "${{ env.GOROOT }}=$root"
           echo "${{ env.GOROOT }}=$root" >> $GITHUB_ENV
 
