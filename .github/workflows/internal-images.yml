@@ -33,6 +33,7 @@ jobs:
               RUN yum install -y --quiet make which git gcc && yum clean all
 
               ARG GO_MINOR_REVISION
+              ARG TARGETARCH
               RUN curl -sSL https://golang.org/dl/go$GO_MINOR_REVISION.linux-$TARGETARCH.tar.gz | tar -xzC /usr/local
               ENV GOROOT=/usr/local/go
               ENV GOPATH=/usr/lib/go
