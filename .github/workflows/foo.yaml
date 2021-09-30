@@ -15,8 +15,6 @@ env:
   GOROOT: GOROOT_1_17_X64
   CONFIGURE_GO: |  # Note: We can't interpolate ${{ env.GOROOT }} here, hence repetition.
     echo "GOROOT=$GOROOT_1_17_X64" >> $GITHUB_ENV
-    echo "GOROOT=$GOROOT_1_17_X64"
-    ls $GOROOT_1_17_X64/bin
     echo "$GOROOT_1_17_X64/bin" >> $GITHUB_PATH
 
 defaults:
@@ -43,6 +41,7 @@ jobs:
           ver=$(echo ${{ env.GOROOT }}| cut -d_ -f2,3| tr _ .)
           root=$(ls -d /Users/runner/hostedtoolcache/go/${ver}*|sort -n|tail -1)
           echo "${{ env.GOROOT }}=$root"
+          find $root
           echo "${{ env.GOROOT }}=$root" >> $GITHUB_ENV
 
       - name: "Configure Go"
