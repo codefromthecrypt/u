@@ -44,11 +44,16 @@ jobs:
 
       - name: "Configure Go"
         run: |
-          echo "GOROOT=${!GOROOT_NAME}" >> $GITHUB_ENV
-          echo "${!GOROOT_NAME}/bin" >> $GITHUB_PATH
+          go_path=${!GOROOT_NAME}/bin
+          for var in GOROOT GOCACHE GOMODCACHE; do
+            echo ${var}=$(${go_path}/go env ${var}) >> $GITHUB_ENV
+          done
+          echo ${go_path} >> $GITHUB_PATH
 
       - name: "Test Go"
         run: |
           echo $GOROOT
+          echo $GOCACHE
+          echo $GOMODCACHE
           echo $PATH
           go version
