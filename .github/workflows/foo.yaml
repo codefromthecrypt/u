@@ -1,0 +1,52 @@
+---
+name: "foo"
+
+on:
+  push:
+    tags: ''
+    branches: master
+  pull_request:
+    branches: master
+  workflow_dispatch:
+
+# Choose GitHub Actions runner version of Go as authoritative
+# Ex. https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#environment-variables-2
+env:
+  GOROOT: GOROOT_1_17_X64
+  CONFIGURE_GO: |  # Note: We can't interpolate ${{ env.GOROOT }} here, hence repetition.
+    echo "GOROOT=$GOROOT_1_17_X64" >> $GITHUB_ENV
+    echo "$GOROOT_1_17_X64/bin" >> $GITHUB_PATH
+
+defaults:
+  run:  # use bash for all operating systems unless overridden
+    shell: bash
+
+jobs:
+  go-stuff:
+    name: "Test go stuff (${{ matrix.os }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false  # don't fail fast as sometimes failures are operating system specific
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: macos-latest
+          - os: windows-latest
+
+    steps:
+      # This patches absence of standard variables on macOS until actions/virtual-environments#4156
+      - name: "Set GOROOT variable (macOS)"
+        if: runner.os == 'macOS'
+        run: |  # ex GOROOT_1_17_X64 -> 1.17
+          ver=$(echo ${{ env.GOROOT }}| cut -d_ -f2,3| tr _ .)
+          root=$(ls -d /Users/runner/hostedtoolcache/go/${ver}*|sort -n|tail -1|xargs basename)
+          echo "${{ env.GOROOT }}=$root"
+          echo "${{ env.GOROOT }}=$root" >> $GITHUB_ENV
+
+      - name: "Configure Go"
+        run: ${{ env.CONFIGURE_GO }}
+
+      - name: "Test Go"
+        run: |
+          echo $GOROOT
+          go version
