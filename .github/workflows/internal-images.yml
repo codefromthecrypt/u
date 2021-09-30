@@ -26,19 +26,17 @@ jobs:
       matrix:
         # Be precise in tag versions to improve reproducibility
         include:
-          # This installs the dependencies needed to build func-e including the latest patch of go
-          # CentOS' root user shell is /bin/bash so go env is set via ~/.bashrc
-          #
-          # Note: This uses gimme so that we can install the latest patch of go without knowing what
-          # that is, or parsing it on our own. This is more flexible and removes update maintenance
-          # we'd have if we hard coded a specific patch. See https://github.com/travis-ci/gimme
+          # This installs the dependencies needed to build func-e including the latest minor revision of go.
+          # This Dockerfile is inlined, so we don't need to check out the source repository.
           - dockerfile: |
               FROM centos:8
               RUN yum install -y --quiet make which git gcc && yum clean all
-              ARG GO_VERSION
-              RUN curl -sSL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=$GO_VERSION.x bash && \
-                  cat ~/.gimme/envs/latest.env >> ~/.bashrc
-              ENTRYPOINT ["/bin/bash"]
+
+              ARG GO_MINOR_REVISION
+              RUN curl -sSL https://golang.org/dl/go$GO_MINOR_REVISION.linux-$TARGETARCH.tar.gz | tar -xzC /usr/local
+              ENV GOROOT=/usr/local/go
+              ENV GOPATH=/usr/lib/go
+              ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
             target_tag: centos8
     runs-on: ubuntu-latest
     steps:
@@ -49,6 +47,19 @@ jobs:
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v1
 
+      # The GO_VERSION is a major release (ex 1.17), but we want GO_MINOR_REVISION (ex 1.17.1).
+      #
+      # Unlike a lot of projects, golang does not attach binaries to releases, so there's a race.
+      # Also, we don't want to see release candidates. In summary, we can't use GitHub for this.
+      #
+      # Instead, we parse https://golang.org/dl to get the latest minor revision of GO_VERSION.
+      # We use gimme instead of replicating the same manually: https://github.com/travis-ci/gimme
+      - name: Resolve Go minor revision
+        run: |
+          GIMME_SCRIPT=https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
+          GO_MINOR_REVISION=$(curl -sSL ${GIMME_SCRIPT} | GIMME_GO_VERSION=${{ env.GO_VERSION }}.x bash -s -- -r)
+          echo "::set-env name=GO_MINOR_REVISION::${GO_MINOR_REVISION}"
+
       - name: Write Dockerfile
         run: |
           cat > Dockerfile <<'EOF'
@@ -58,7 +69,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-          build-args: GO_VERSION=${{ env.GO_VERSION }}
+          build-args: GO_MINOR_REVISION=${{ env.GO_MINOR_REVISION }}
           context: .
           platforms: linux/amd64,linux/arm64  # arm64 is run only by Travis. See RATIONALE.md
           tags: ghcr.io/${{ github.repository_owner }}/func-e-internal:${{ matrix.target_tag }}
