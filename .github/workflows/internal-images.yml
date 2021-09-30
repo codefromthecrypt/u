@@ -33,6 +33,7 @@ jobs:
               RUN yum install -y --quiet make which git gcc && yum clean all
 
               ARG GO_MINOR_REVISION
+              # See https://docs.docker.com/engine/reference/builder/#automatic-platform-args-in-the-global-scope
               ARG TARGETARCH
               RUN curl -sSL https://golang.org/dl/go$GO_MINOR_REVISION.linux-$TARGETARCH.tar.gz | tar -xzC /usr/local
               ENV GOROOT=/usr/local/go
@@ -54,6 +55,9 @@ jobs:
       # revision from the current runner (https://github.com/actions/virtual-environments)
       - name: Export Go minor revision
         run: |  # Ex. GOROOT_1_17_X64=/opt/hostedtoolcache/go/1.17.1/x64
+          set +x
+          cache=$(echo $GOROOT_${{ env.GO_VERSION }}_X64)
+          echo $cache
           rev=$(echo $GOROOT_${{ env.GO_VERSION }}_X64|cut -d/ -f5)
           echo "GO_MINOR_REVISION=${rev}" >> $GITHUB_ENV
 
