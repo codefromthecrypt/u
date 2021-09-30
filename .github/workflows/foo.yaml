@@ -38,7 +38,7 @@ jobs:
       - name: "Set GOROOT_X64 env (macOS)"
         if: runner.os == 'macOS'
         run: |  # ex GOROOT_1_17_X64 -> 1.17
-          go_version=$(echo ${GOROOT_NAME}| cut -d_ -f2,3| tr _ .)
+          go_version=$(echo ${GOROOT_NAME//_/.}| cut -d. -f2,3)
           go_root=$(ls -d /Users/runner/hostedtoolcache/go/${go_version}*/x64|sort -n|tail -1)
           echo "${GOROOT_NAME}=${go_root}" >> $GITHUB_ENV
 
