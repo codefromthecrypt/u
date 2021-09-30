@@ -26,7 +26,7 @@ jobs:
       matrix:
         # Be precise in tag versions to improve reproducibility
         include:
-          # This installs the dependencies needed to build func-e including the latest minor revision of go.
+          # This installs the dependencies of func-e's Makefile, and libraries needed to run Envoy.
           # This Dockerfile is inlined, so we don't need to check out the source repository.
           - dockerfile: |
               FROM centos:8
@@ -49,16 +49,12 @@ jobs:
 
       # The GO_VERSION is a major release (ex 1.17), but we want GO_MINOR_REVISION (ex 1.17.1).
       #
-      # Unlike a lot of projects, golang does not attach binaries to releases, so there's a race.
-      # Also, we don't want to see release candidates. In summary, we can't use GitHub for this.
-      #
-      # Instead, we parse https://golang.org/dl to get the latest minor revision of GO_VERSION.
-      # We use gimme instead of replicating the same manually: https://github.com/travis-ci/gimme
-      - name: Resolve Go minor revision
-        run: |
-          GIMME_SCRIPT=https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
-          GO_MINOR_REVISION=$(curl -sSL ${GIMME_SCRIPT} | GIMME_GO_VERSION=${{ env.GO_VERSION }}.x bash -s -- -r)
-          echo "::set-env name=GO_MINOR_REVISION::${GO_MINOR_REVISION}"
+      # Instead of looking for the latest revision via parsing https://golang.org/dl, we match the
+      # revision from the current runner (https://github.com/actions/virtual-environments)
+      - name: Export Go minor revision
+        run: |  # Ex. GOROOT_1_17_X64=/opt/hostedtoolcache/go/1.17.1/x64
+          rev=$(echo $GOROOT_${{ env.GO_VERSION }}_X64|cut -d/ -f5)
+          echo "GO_MINOR_REVISION=${rev}" >> $GITHUB_ENV
 
       - name: Write Dockerfile
         run: |
