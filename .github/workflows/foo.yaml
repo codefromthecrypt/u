@@ -43,12 +43,22 @@ jobs:
           echo "${GOROOT_NAME}=${go_root}" >> $GITHUB_ENV
 
       - name: "Configure Go"
-        run: |
+        run: |  # This exports variables needed to run and cache a GOROOT set with ${!GOROOT_NAME}.
           go_path=${!GOROOT_NAME}/bin
           for var in GOROOT GOCACHE GOMODCACHE; do
             echo ${var}=$(${go_path}/go env ${var}) >> $GITHUB_ENV
           done
           echo ${go_path} >> $GITHUB_PATH
+
+      - name: "Cache Go"
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ env.GOCACHE }}
+            ${{ env.GOMODCACHE }}
+          # Makefile contains go run statements which affect the build cache
+          key: test-${{ runner.os }}-${{ env.GOROOT_NAME }}-go- }}
+          restore-keys: test-${{ runner.os }}-${{ env.GOROOT_NAME }}-go-
 
       - name: "Test Go"
         run: |
