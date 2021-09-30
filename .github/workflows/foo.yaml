@@ -54,10 +54,10 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ${{ env.GOCACHE }}
-            ${{ env.GOMODCACHE }}
+            ${GOCACHE}
+            ${GOMODCACHE}
           # Makefile contains go run statements which affect the build cache
-          key: test-${{ runner.os }}-${{ env.GOROOT_NAME }}-go- }}
+          key: test-${{ runner.os }}-${{ env.GOROOT_NAME }}-go-
           restore-keys: test-${{ runner.os }}-${{ env.GOROOT_NAME }}-go-
 
       - name: "Test Go"
