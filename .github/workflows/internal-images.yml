@@ -54,11 +54,10 @@ jobs:
       # Instead of looking for the latest revision via parsing https://golang.org/dl, we match the
       # revision from the current runner (https://github.com/actions/virtual-environments)
       - name: Export Go minor revision
-        run: |  # Ex. GOROOT_1_17_X64=/opt/hostedtoolcache/go/1.17.1/x64
-          set +x
-          cache=$(echo $GOROOT_${{ env.GO_VERSION }}_X64)
-          echo $cache
-          rev=$(echo $GOROOT_${{ env.GO_VERSION }}_X64|cut -d/ -f5)
+        run: |  # Ex. GO_VERSION=1.17, GOROOT_1_17_X64=/opt/hostedtoolcache/go/1.17.1/x64 -> 1.17.1
+          ver=${{ env.GO_VERSION }}
+          var=GOROOT_${ver/./_}_X64
+          rev=$(echo ${!var}|cut -d/ -f5)
           echo "GO_MINOR_REVISION=${rev}" >> $GITHUB_ENV
 
       - name: Write Dockerfile
