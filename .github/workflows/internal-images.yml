@@ -8,8 +8,21 @@ on:
     - cron: "23 3 * * *"
   workflow_dispatch:  # Allows manual refresh
 
-env:  # Update this prior to requiring a higher minor version in go.mod
-  GO_VERSION: "1.17"  # Latest patch
+# This builds images and pushes them to ghcr.io/tetratelabs/func-e-internal:$tag
+# Using these in tests and as a parent (FROM) avoids docker.io rate-limits particularly on pull requests.
+#
+# To troubleshoot, run locally with docker and install go directly. Ex:
+# ```bash
+# $ docker run -ti -v $PWD:/func-e --rm centos:8
+# [root@d37da4601545 /]# cd /func-e
+# now execute your setup commands!
+# ```
+
+# GOROOT_NAME resolves a GOROOT path corresponding to a major Golang release on the current runner.
+# Ex. Given GOROOT_NAME=GOROOT_1_17_X64, ${!GOROOT_NAME}=/opt/hostedtoolcache/go/1.17.1/x64
+# See https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#environment-variables-2
+env:
+  GOROOT_NAME: GOROOT_1_17_X64
 
 # This builds images and pushes them to ghcr.io/tetratelabs/func-e-internal:$tag
 # Using these in tests and as a parent (FROM) avoids docker.io rate-limits particularly on pull requests.
@@ -49,19 +62,13 @@ jobs:
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v1
 
-      # The GO_VERSION is a major release (ex 1.17), but we want GO_MINOR_REVISION (ex 1.17.1).
+      # This resolves GOROOT_NAME (ex GOROOT_1_17_X64) into GO_MINOR_REVISION (ex 1.17.1), by
+      # parsing the directory path GOROOT_NAME evaluates to.
       #
-      # Instead of looking for the latest revision via parsing https://golang.org/dl, we match the
-      # revision from the current runner (https://github.com/actions/virtual-environments)
-      #
-      # This is a little tricky because there are multiple GO_ROOT variables. We need to choose
-      # which to expand, based on GO_VERSION. This implies converting dots to underscores.
-      # Ex. Given GO_VERSION=1.17, GOROOT_1_17_X64=/opt/hostedtoolcache/go/1.17.1/x64 -> 1.17.1
+      # Ex. Given ${!GOROOT_NAME}=/opt/hostedtoolcache/go/1.17.1/x64 -> GO_MINOR_REVISION=1.17.1
       - name: Export Go minor revision
         run: |
-          ver=${{ env.GO_VERSION }}
-          var=GOROOT_${ver/./_}_X64
-          rev=$(echo ${!var}|cut -d/ -f5)
+          rev=$(echo ${!GOROOT_NAME}|cut -d/ -f5)
           echo "GO_MINOR_REVISION=${rev}" >> $GITHUB_ENV
 
       - name: Write Dockerfile
@@ -73,7 +80,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-          build-args: GO_MINOR_REVISION=${{ env.GO_MINOR_REVISION }}
           context: .
+          build-args: GO_MINOR_REVISION=${{ env.GO_MINOR_REVISION }}
           platforms: linux/amd64,linux/arm64  # arm64 is run only by Travis. See RATIONALE.md
           tags: ghcr.io/${{ github.repository_owner }}/func-e-internal:${{ matrix.target_tag }}
