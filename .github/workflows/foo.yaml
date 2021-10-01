@@ -63,7 +63,7 @@ jobs:
       - name: "Test Go"
         run: |
           echo $USER
-          echo $HOME
+          ls /opt/hostedtoolcache/go/*
           echo ----
           echo $GOROOT
           echo $GOCACHE
