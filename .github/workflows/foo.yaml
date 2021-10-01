@@ -66,4 +66,6 @@ jobs:
           echo $GOCACHE
           echo $GOMODCACHE
           echo $PATH
+          env | grep GO
+          go env
           go version
