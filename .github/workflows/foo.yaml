@@ -26,7 +26,12 @@ jobs:
           - os: windows-latest
 
     steps:
+      - uses: actions/checkout@v2
+
       # This configures Go according to go.mod, choosing the latest minor revision in RUNNER_TOOL_CACHE
+      #
+      # * RUNNER_TOOL_CACHE lags Go releases by 1-2 weeks. See https://github.com/actions/virtual-environments
+      # * As this reads go.mod, this relies on actions/checkout though full history is not necessary.
       - name: "Configure Go"
         run: |
           go_version=$(sed -n 's/^go //gp' go.mod)
