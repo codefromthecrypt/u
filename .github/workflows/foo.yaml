@@ -62,12 +62,15 @@ jobs:
 
       - name: "Test Go"
         run: |
-          set +x
+          echo $USER
+          echo $HOME
+          echo ----
           echo $GOROOT
           echo $GOCACHE
           echo $GOMODCACHE
           echo $PATH
+          echo ----
           env | grep GO
-          echo $HOME
+          echo ----
           go env
           go version
