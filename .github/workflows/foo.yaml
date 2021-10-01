@@ -28,21 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # This configures Go according to go.mod, choosing the latest minor revision in RUNNER_TOOL_CACHE
-      #
-      # * RUNNER_TOOL_CACHE lags Go releases by 1-2 weeks. See https://github.com/actions/virtual-environments
-      # * As this reads go.mod, this relies on actions/checkout though full history is not necessary.
       - name: "Configure Go"
-        run: |
-          env
-          echo ----
-          go_version=$(sed -n 's/^go //gp' go.mod)
-          echo GO_VERSION=${go_version} >> $GITHUB_ENV
-          go_root=$(ls -d ${RUNNER_TOOL_CACHE}/go/${go_version}*/x64|sort -n|tail -1)
-          echo GOROOT=${go_root} >> $GITHUB_ENV
-          echo ${go_root}/bin >> $GITHUB_PATH
-          # export the OS-specific GOCACHE (build cache) variable for actions/cache
-          echo GOCACHE=$(${go_root}/bin/go env GOCACHE) >> $GITHUB_ENV
+        run: .github/workflows/configure_go.sh
 
       - name: "Cache Go"
         uses: actions/cache@v2
