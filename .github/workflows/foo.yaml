@@ -34,6 +34,8 @@ jobs:
       # * As this reads go.mod, this relies on actions/checkout though full history is not necessary.
       - name: "Configure Go"
         run: |
+          env
+          echo ----
           go_version=$(sed -n 's/^go //gp' go.mod)
           echo GO_VERSION=${go_version} >> $GITHUB_ENV
           go_root=$(ls -d ${RUNNER_TOOL_CACHE}/go/${go_version}*/x64|sort -n|tail -1)
