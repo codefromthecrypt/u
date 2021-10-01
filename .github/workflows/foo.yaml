@@ -9,12 +9,6 @@ on:
     branches: master
   workflow_dispatch:
 
-# GOROOT_NAME resolves a GOROOT path corresponding to a major Golang release on the current runner.
-# Ex. Given GOROOT_NAME=GOROOT_1_17_X64, ${!GOROOT_NAME}=/Users/runner/hostedtoolcache/go/1.17.1/x64
-# See https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#environment-variables-2
-env:
-  GOROOT_NAME: GOROOT_1_17_X64
-
 defaults:
   run:  # use bash for all operating systems unless overridden
     shell: bash
@@ -32,46 +26,28 @@ jobs:
           - os: windows-latest
 
     steps:
-      # This sets the version-specific GOROOT env on macOS until actions/virtual-environments#4156
-      #
-      # This must happen before interpolating ${!GOROOT_NAME} on macOS
-      - name: "Set GOROOT_X64 env (macOS)"
-        if: runner.os == 'macOS'
-        run: |  # ex GOROOT_1_17_X64 -> 1.17
-          go_version=$(echo ${GOROOT_NAME//_/.}| cut -d. -f2,3)
-          go_root=$(ls -d /Users/runner/hostedtoolcache/go/${go_version}*/x64|sort -n|tail -1)
-          echo "${GOROOT_NAME}=${go_root}" >> $GITHUB_ENV
-
+      # This configures Go according to go.mod, choosing the latest minor revision in RUNNER_TOOL_CACHE
       - name: "Configure Go"
-        run: |  # This exports variables needed to run and cache a GOROOT set with ${!GOROOT_NAME}.
-          env | grep GO
-          env | grep hostedtoolcache
-          echo ----
-          go_path=${!GOROOT_NAME}/bin
-          for var in GOROOT GOCACHE; do
-            echo ${var}=$(${go_path}/go env ${var}) >> $GITHUB_ENV
-          done
-          echo ${go_path} >> $GITHUB_PATH
+        run: |
+          go_version=$(sed -n 's/^go //gp' go.mod)
+          echo GO_VERSION=${go_version} >> $GITHUB_ENV
+          go_root=$(ls -d ${RUNNER_TOOL_CACHE}/go/${go_version}*/x64|sort -n|tail -1)
+          echo GOROOT=${go_root} >> $GITHUB_ENV
+          echo ${go_root}/bin >> $GITHUB_PATH
+          # export the OS-specific GOCACHE (build cache) variable for actions/cache
+          echo GOCACHE=$(${go_root}/bin/go env GOCACHE) >> $GITHUB_ENV
 
       - name: "Cache Go"
         uses: actions/cache@v2
         with:
-          path: |
+          path: |  # Cache downloaded Go modules and the GOCACHE (to cache `go run` builds invoked by Makefile)
+            ~/go/pkg/mod
             ${{ env.GOCACHE }}
-            ${{ env.GOMODCACHE }}
-          # Makefile contains go run statements which affect the build cache
-          key: test-${{ runner.os }}-${{ env.GOROOT_NAME }}-go-
-          restore-keys: test-${{ runner.os }}-${{ env.GOROOT_NAME }}-go-
+          key: test-${{ runner.os }}-${{ env.GO_VERSION }}-go-${{ hashFiles('go.sum', 'Makefile') }}
+          restore-keys: test-${{ runner.os }}-${{ env.GO_VERSION }}-go-
 
       - name: "Test Go"
         run: |
-          echo $USER
-          echo ----
-          echo $GOROOT
-          echo $GOCACHE
-          echo $GOMODCACHE
-          echo $PATH
-          echo ----
           env | grep GO
           echo ----
           go env
