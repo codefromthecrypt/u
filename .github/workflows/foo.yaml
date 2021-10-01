@@ -45,9 +45,10 @@ jobs:
       - name: "Configure Go"
         run: |  # This exports variables needed to run and cache a GOROOT set with ${!GOROOT_NAME}.
           env | grep GO
+          env | grep hostedtoolcache
           echo ----
           go_path=${!GOROOT_NAME}/bin
-          for var in GOROOT GOCACHE GOMODCACHE; do
+          for var in GOROOT GOCACHE; do
             echo ${var}=$(${go_path}/go env ${var}) >> $GITHUB_ENV
           done
           echo ${go_path} >> $GITHUB_PATH
