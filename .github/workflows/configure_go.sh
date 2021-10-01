@@ -17,12 +17,12 @@ echo GO_VERSION="${go_version}" >> "${GITHUB_ENV}"
 # Match last exported GOROOT variable name that includes the version we want. Ex. GOROOT_1_17_X64
 goroot_name=$(env|grep "^GOROOT_${go_version//./_}"| sed 's/=.*//g'|sort -n|tail -1)
 
-# Patch missing GOROOT env on macOS until actions/virtual-environments#4156
-if [ -n "${!goroot_name}" ]; then
+if [ -n "${goroot_name}" ]; then
+  go_root=${!goroot_name}
+else
+  # Patch missing GOROOT env on macOS until actions/virtual-environments#4156
   # Match last directory for the minor version. Ex. /Users/runner/hostedtoolcache/go/1.17.1/x64
   go_root=$(ls -d "${RUNNER_TOOL_CACHE}/go/${go_version}*/x64"|sort -n|tail -1)
-else
-  go_root=${!goroot_name}
 fi
 
 # Ensure go works
