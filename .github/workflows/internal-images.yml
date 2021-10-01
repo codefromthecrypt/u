@@ -17,22 +17,6 @@ on:
 # [root@d37da4601545 /]# cd /func-e
 # now execute your setup commands!
 # ```
-
-# GOROOT_NAME resolves a GOROOT path corresponding to a major Golang release on the current runner.
-# Ex. Given GOROOT_NAME=GOROOT_1_17_X64, ${!GOROOT_NAME}=/opt/hostedtoolcache/go/1.17.1/x64
-# See https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#environment-variables-2
-env:
-  GOROOT_NAME: GOROOT_1_17_X64
-
-# This builds images and pushes them to ghcr.io/tetratelabs/func-e-internal:$tag
-# Using these in tests and as a parent (FROM) avoids docker.io rate-limits particularly on pull requests.
-#
-# To troubleshoot, run locally with docker and install go directly. Ex:
-# ```bash
-# $ docker run -ti -v $PWD:/func-e --rm centos:8
-# [root@d37da4601545 /]# cd /func-e
-# now execute your setup commands!
-# ```
 jobs:
   build-and-push-images:
     strategy:
@@ -62,13 +46,12 @@ jobs:
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v1
 
-      # This resolves GOROOT_NAME (ex GOROOT_1_17_X64) into GO_MINOR_REVISION (ex 1.17.1), by
-      # parsing the directory path GOROOT_NAME evaluates to.
-      #
-      # Ex. Given ${!GOROOT_NAME}=/opt/hostedtoolcache/go/1.17.1/x64 -> GO_MINOR_REVISION=1.17.1
-      - name: Export Go minor revision
-        run: |
-          rev=$(echo ${!GOROOT_NAME}|cut -d/ -f5)
+      - name: "Configure Go"
+        run: .github/workflows/configure_go.sh
+
+      - name: "Export Go minor revision"
+        run: |  # Ex. GOROOT=/opt/hostedtoolcache/go/1.17.1/x64 -> GO_MINOR_REVISION=1.17.1
+          rev=$(echo ${GOROOT}|cut -d/ -f5)
           echo "GO_MINOR_REVISION=${rev}" >> $GITHUB_ENV
 
       - name: Write Dockerfile

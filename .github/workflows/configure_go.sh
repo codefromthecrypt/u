@@ -17,11 +17,10 @@ echo GO_VERSION="${go_version}" >> "${GITHUB_ENV}"
 # Match last exported GOROOT variable name that includes the version we want. Ex. GOROOT_1_17_X64
 goroot_name=$(env|grep "^GOROOT_${go_version//./_}"| sed 's/=.*//g'|sort -n|tail -1)
 
-# We should always get a value here when actions/virtual-environments#4156 is solved.
+# Remove this if/else after actions/virtual-environments#4156 is solved
 if [ -n "${goroot_name}" ]; then
   go_root=${!goroot_name}
 else
-  # Remove after actions/virtual-environments#4156 is solved
   # This works around missing variables on macOS via naming convention.
   # Ex. /Users/runner/hostedtoolcache/go/1.17.1/x64
   go_root=$(ls -d "${RUNNER_TOOL_CACHE}"/go/"${go_version}"*/x64|sort -n|tail -1)
