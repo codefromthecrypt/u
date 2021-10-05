@@ -8,14 +8,15 @@
 # Use the GitHub Actions runner version-specific GOROOT, unless overridden.
 # Ex. go.mod uses 1.17 and GOARCH=amd64 -> GOROOT=${GOROOT_1_17_X64}
 ifeq ($(GOROOT),)
-go_release  = $(shell sed -ne 's/^go //gp' go.mod | tr . _ )
-goroot_arch = $(if $(findstring $(shell uname -m),x86_64),X64,ARM64)
-goroot      = $(GOROOT_$(go_release)_$(goroot_arch))
+go_version      = $(shell sed -ne 's/^go //gp' go.mod)
+goroot_release  = $(go_version:.=_)
+goroot_arch     = $(if $(findstring $(shell uname -m),x86_64),X64,ARM64)
+goroot          = $(GOROOT_$(goroot_release)_$(goroot_arch))
 # Remove this branch after actions/virtual-environments#4156 is solved.
 ifeq ($(goroot),)
-  # This works around missing variables on macOS via naming convention.
-  # Ex. /Users/runner/hostedtoolcache/go/1.17.1/x64
-  go_root   := $(shell ls -d "${RUNNER_TOOL_CACHE}"/go/"$(go_release)"*/x64|sort -n|tail -1)
+	# This works around missing variables on macOS via naming convention.
+	# Ex. /Users/runner/hostedtoolcache/go/1.17.1/x64
+	goroot      := $(shell ls -d /Users/runner/hostedtoolcache/go/$(go_version)*/x64|sort -n|tail -1)
 endif
 ifneq ($(goroot),)
 	export GOROOT := $(goroot)
