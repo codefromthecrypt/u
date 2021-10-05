@@ -12,7 +12,7 @@
 go_release    := $(shell sed -ne 's/^go //gp' go.mod)
 # https://github.com/actions/runner/blob/master/src/Runner.Common/Constants.cs
 runner_arch   := $(if $(findstring $(shell uname -m),x86_64),X64,ARM64)
-goroot_github := $(GOROOT_$(shell echo $(go_release) | tr . _)_$(github_arch))
+goroot_github := $(GOROOT_$(shell echo $(go_release) | tr . _)_$(runner_arch))
 # This works around missing variables on macOS via naming convention.
 # Ex. /Users/runner/hostedtoolcache/go/1.17.1/x64
 # Remove this after actions/virtual-environments#4156 is solved.
