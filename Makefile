@@ -13,13 +13,13 @@ ifndef GOROOT
 go_version    = $(shell sed -ne 's/^go //gp' go.mod)
 env_version   = $(shell echo $(go_version) | tr . _)
 env_arch      = $(if $(findstring $(shell uname -m),x86_64),X64,ARM64)
-goroot_env    = $(GOROOT_$(goroot_release)_$(goroot_arch))
-# Remove this branch after actions/virtual-environments#4156 is solved.
+goroot_env    = $(GOROOT_$(env_version)_$(env_arch))
 # This works around missing variables on macOS via naming convention.
 # Ex. /Users/runner/hostedtoolcache/go/1.17.1/x64
-goroot_macos  = $(shell ls -d ${RUNNER_TOOL_CACHE}/go/$(go_version)*/x64|sort -n|tail -1 2>/dev/null)
-goroot_real   = $(shell go env GOROOT 2>/dev/null)
-export GOROOT = $(firstword $(goroot_env) $(goroot_macos) $(goroot_real))
+# Remove this after actions/virtual-environments#4156 is solved.
+goroot_macos  = $(firstword $(shell ls -d /Users/runner/hostedtoolcache/go/$(go_version)*/x64 2>/dev/null))
+goroot_path   = $(shell go env GOROOT 2>/dev/null)
+export GOROOT = $(firstword $(goroot_env) $(goroot_macos) $(goroot_path))
 endif
 
 # Build the path relating to the current runtime (goos,goarch)
