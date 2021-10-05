@@ -20,7 +20,7 @@ goroot_github_cache  := $(lastword $(shell ls -d $(RUNNER_TOOL_CACHE)/go/$(go_re
 goroot_path          := $(shell go env GOROOT 2>/dev/null)
 goroot               := $(firstword $(GOROOT) $(goroot_github_env) $(goroot_github_cache) $(goroot_path))
 ifdef COMSPEC
-goroot := $(shell cygpath -m $(goroot))
+goroot := $(shell cygpath $(goroot))
 endif
 
 # We can't overwrite the shell variable GOROOT, but we need to when running go.
