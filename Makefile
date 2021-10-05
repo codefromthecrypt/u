@@ -7,27 +7,24 @@
 
 # Use the GitHub Actions runner version-specific GOROOT, unless overridden.
 # Ex. go.mod uses 1.17 and GOARCH=amd64 -> GOROOT=${GOROOT_1_17_X64}
-ifeq ($(GOROOT),)
-go_version      = $(shell sed -ne 's/^go //gp' go.mod)
-goroot_release  = $(shell echo $(go_version) | tr . _)
-goroot_arch     = $(if $(findstring $(shell uname -m),x86_64),X64,ARM64)
-goroot          = $(GOROOT_$(goroot_release)_$(goroot_arch))
+#
+# When GOROOT lookup fails, this defaults to whichever go is in the PATH.
+ifndef GOROOT
+go_version    = $(shell sed -ne 's/^go //gp' go.mod)
+env_version   = $(shell echo $(go_version) | tr . _)
+env_arch      = $(if $(findstring $(shell uname -m),x86_64),X64,ARM64)
+goroot_env    = $(GOROOT_$(goroot_release)_$(goroot_arch))
 # Remove this branch after actions/virtual-environments#4156 is solved.
-ifeq ($(goroot),)
-	# This works around missing variables on macOS via naming convention.
-	# Ex. /Users/runner/hostedtoolcache/go/1.17.1/x64
-	goroot      := $(shell ls -d /Users/runner/hostedtoolcache/go/$(go_version)*/x64|sort -n|tail -1 2>/dev/null)
-endif
-ifneq ($(goroot),)
-	export GOROOT := $(goroot)
-	export PATH   := $(goroot)/bin:${PATH}
-endif
+# This works around missing variables on macOS via naming convention.
+# Ex. /Users/runner/hostedtoolcache/go/1.17.1/x64
+goroot_macos  = $(shell ls -d ${RUNNER_TOOL_CACHE}/go/$(go_version)*/x64|sort -n|tail -1 2>/dev/null)
+goroot_real   = $(shell go env GOROOT 2>/dev/null)
+export GOROOT = $(firstword $(goroot_env) $(goroot_macos) $(goroot_real))
 endif
 
+# Build the path relating to the current runtime (goos,goarch)
+gobin  := $(GOROOT)/bin
+
 test:
-	echo $(goroot_release)
-	echo $(goroot_arch)
-	echo $(goroot)
 	echo $(GOROOT)
-	which go
-	go env
+	$(gobin)/go env
