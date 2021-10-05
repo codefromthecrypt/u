@@ -27,7 +27,7 @@ goroot               := $(firstword $(GOROOT) $(goroot_github_env) $(goroot_gith
 # .ONESHELL is not supported on the old Make installed on darwin (3.81), so we
 # have to concatenate lines to achieve the same
 gobin := $(goroot)$(if $(COMSPEC),\,/)bin
-go    := export PATH="$(gobin)$(if $(COMSPEC),;,:)$(PATH)" && export GOROOT="$(goroot)" && go
+go    := export PATH="$(gobin)$(if $(COMSPEC),;,:)$${PATH}" && export GOROOT="$(goroot)" && echo $$PATH && go
 
 test:
 	$(go) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1 run .
