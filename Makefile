@@ -19,18 +19,14 @@ goroot_github := $(GOROOT_$(shell echo $(go_release) | tr . _)_$(github_arch))
 goroot_macos  := $(firstword $(shell ls -d /Users/runner/hostedtoolcache/go/$(go_release)*/x64 2>/dev/null))
 goroot_path   := $(shell go env GOROOT 2>/dev/null)
 goroot        := $(firstword $(GOROOT) $(goroot_github) $(goroot_macos) $(goroot_path))
-ifdef COMSPEC
-goroot := $(shell cygpath -m $(goroot))
-endif
 
 # We can't overwrite the shell variable GOROOT, but we need to when running go.
 # GOROOT ensures versions don't conflict with /usr/local/go or c:\Go
 export GOROOT := $(goroot)
 
-# PATH ensures tools run via `go run` can fork and execute the correct go.
-path_sep := $(if $(COMSPEC),\,/)
-gobin    := $(goroot)$(path_sep)bin$(path_sep)go
-go := PATH="$(dir $(gobin))$(if $(COMSPEC),;,:)$(PATH)" $(gobin)
+# PATH ensures tools run via `go run` can fork and execute without conflicting.
+gobin := $(goroot)$(if $(COMSPEC),\,/)bin
+go    := PATH="$(gobin)$(if $(COMSPEC),;,:)$(PATH)" $(if $(COMSPEC),$(shell cygpath -m $(gobin)),$(gobin))/go
 
 test:
 	$(go) env
