@@ -9,6 +9,10 @@
 # Ex. go.mod uses 1.17 and GOARCH=amd64 -> GOROOT=${GOROOT_1_17_X64}
 #
 # When GOROOT lookup fails, this defaults to whichever go is in the PATH.
+# When GOROOT is not already set, it attempts lookup from a GitHub Actions
+# version-specific ENV variable, and failing that the PATH.
+#
+# Ex. go.mod uses 1.17 and GOARCH=amd64 -> GOROOT=${GOROOT_1_17_X64}
 ifndef GOROOT
 go_version    = $(shell sed -ne 's/^go //gp' go.mod)
 env_version   = $(shell echo $(go_version) | tr . _)
@@ -19,12 +23,12 @@ goroot_env    = $(GOROOT_$(env_version)_$(env_arch))
 # Remove this after actions/virtual-environments#4156 is solved.
 goroot_macos  = $(firstword $(shell ls -d /Users/runner/hostedtoolcache/go/$(go_version)*/x64 2>/dev/null))
 goroot_path   = $(shell go env GOROOT 2>/dev/null)
-export GOROOT = $(firstword $(goroot_env) $(goroot_macos) $(goroot_path))
+goroot        = $(firstword $(goroot_env) $(goroot_macos) $(goroot_path))
 endif
 
 # Build the path relating to the current runtime (goos,goarch)
-gobin  := $(GOROOT)/bin
+go  := "$(goroot)/bin/go"
 
 test:
 	echo $(GOROOT)
-	$(gobin)/go env
+	$(go) env
