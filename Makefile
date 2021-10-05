@@ -9,7 +9,7 @@
 # Ex. go.mod uses 1.17 and GOARCH=amd64 -> GOROOT=${GOROOT_1_17_X64}
 ifeq ($(GOROOT),)
 go_version      = $(shell sed -ne 's/^go //gp' go.mod)
-goroot_release  = $(go_version:.=_)
+goroot_release  = $(shell echo $(go_version) | tr . _)
 goroot_arch     = $(if $(findstring $(shell uname -m),x86_64),X64,ARM64)
 goroot          = $(GOROOT_$(goroot_release)_$(goroot_arch))
 # Remove this branch after actions/virtual-environments#4156 is solved.
