@@ -25,5 +25,8 @@ endif
 endif
 
 test:
+	echo $(goroot_release)
+	echo $(goroot_arch)
+	echo $(goroot)
 	echo $(GOROOT)
 	which go
