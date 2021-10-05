@@ -28,7 +28,10 @@ endif
 export GOROOT := $(goroot)
 
 # PATH ensures tools run via `go run` can fork and execute the correct go.
-go := PATH="$(goroot)$(if $(COMSPEC),\,/)bin$(if $(COMSPEC),;,:)$(PATH)" go
+path_sep := $(if $(COMSPEC),\,/)
+goexe    := $(if $(COMSPEC),.exe,)
+gobin    := $(goroot)$(path_sep)bin$(path_sep)go$(goexe)
+go := PATH="$(dir $(gobin))$(if $(COMSPEC),;,:)$(PATH)" $(gobin)
 
 test:
 	$(go) env
