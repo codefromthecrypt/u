@@ -21,9 +21,13 @@ goroot_path          := $(shell go env GOROOT 2>/dev/null)
 goroot               := $(firstword $(GOROOT) $(goroot_github_env) $(goroot_github_cache) $(goroot_path))
 
 # We can't overwrite the shell variable GOROOT, but we need to when running go.
-# GOROOT ensures versions don't conflict with /usr/local/go or c:\Go
-# PATH ensures tools like golint can fork and execute the correct go binary.
-go := export PATH="$(if $(COMSPEC),$(shell cygpath -m $(goroot)),$(goroot))/bin:$(PATH)" && GOROOT="$(goroot)" go
+# * GOROOT ensures versions don't conflict with /usr/local/go or c:\Go
+# * PATH ensures tools like golint can fork and execute the correct go binary.
+#
+# .ONESHELL is not supported on the old Make installed on darwin (3.81), so we
+# have to concatenate lines to achieve the same
+gobin := $(goroot)$(if $(COMSPEC),\,/)bin
+go    := export PATH="$(gobin)$(if $(COMSPEC),;,:)$(PATH)" && export GOROOT="$(goroot)" && go
 
 test:
 	$(go) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1 run .
