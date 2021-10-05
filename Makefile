@@ -16,7 +16,7 @@ goroot          = $(GOROOT_$(goroot_release)_$(goroot_arch))
 ifeq ($(goroot),)
 	# This works around missing variables on macOS via naming convention.
 	# Ex. /Users/runner/hostedtoolcache/go/1.17.1/x64
-	goroot      := $(shell ls -d /Users/runner/hostedtoolcache/go/$(go_version)*/x64|sort -n|tail -1)
+	goroot      := $(shell ls -d /Users/runner/hostedtoolcache/go/$(go_version)*/x64|sort -n|tail -1 2>/dev/null)
 endif
 ifneq ($(goroot),)
 	export GOROOT := $(goroot)
@@ -30,3 +30,4 @@ test:
 	echo $(goroot)
 	echo $(GOROOT)
 	which go
+	go env
