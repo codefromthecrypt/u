@@ -23,7 +23,8 @@ goroot        := $(firstword $(GOROOT) $(goroot_github) $(goroot_macos) $(goroot
 # We can't overwrite the shell variable GOROOT or PATH, but we need to when running go.
 # GOROOT ensures versions don't conflict with /usr/local/go or c:\Go
 # PATH ensures tools run via `go run` can fork and execute the correct go.
-go := GOROOT="$(goroot)" PATH="$(goroot)$(if $(COMSPEC),\,/)bin$(if $(COMSPEC),;,:)${PATH}" go
+export PATH := $(goroot)$(if $(COMSPEC),\,/)bin$(if $(COMSPEC),;,:)$(PATH)
+go := GOROOT=$(goroot) go
 
 test:
 	$(go) env
