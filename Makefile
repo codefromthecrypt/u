@@ -24,7 +24,7 @@ goroot               := $(firstword $(GOROOT) $(goroot_github_env) $(goroot_gith
 # GOROOT ensures versions don't conflict with /usr/local/go or c:\Go
 # PATH ensures tools run via `go run` can fork and execute without conflicting.
 gobin := $(goroot)$(if $(COMSPEC),\,/)bin
-go    := GOROOT="$(goroot)" PATH="$(gobin)$(if $(COMSPEC),;,:)$(PATH)" $(if $(COMSPEC),$(shell cygpath -m $(gobin)),$(gobin))/go
+go    := export PATH="$(gobin)$(if $(COMSPEC),;,:)$(PATH)" && GOROOT="$(goroot)" go
 
 test:
-	$(go) env
+	$(go) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1 run .
