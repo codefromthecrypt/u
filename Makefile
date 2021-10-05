@@ -20,11 +20,11 @@ goroot_macos  := $(firstword $(shell ls -d /Users/runner/hostedtoolcache/go/$(go
 goroot_path   := $(shell go env GOROOT 2>/dev/null)
 goroot        := $(firstword $(GOROOT) $(goroot_github) $(goroot_macos) $(goroot_path))
 
-# We can't overwrite the shell variable GOROOT or PATH, but we need to when running go.
-# GOROOT ensures versions don't conflict with /usr/local/go or c:\Go
 # PATH ensures tools run via `go run` can fork and execute the correct go.
 export PATH := $(goroot)$(if $(COMSPEC),\,/)bin$(if $(COMSPEC),;,:)$(PATH)
-go := GOROOT=$(goroot) go
+# We can't overwrite the shell variable GOROOT, but we need to when running go.
+# GOROOT ensures versions don't conflict with /usr/local/go or c:\Go
+go := GOROOT=$(goroot:\,\\) go
 
 test:
 	$(go) env
