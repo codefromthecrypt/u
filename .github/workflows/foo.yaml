@@ -30,3 +30,7 @@ jobs:
 
       - name: "Test Go"
         run: make test
+
+      - name: "lsb_release -sc"
+        if: runner.os == 'Linux'
+        run: lsb_release -sc
