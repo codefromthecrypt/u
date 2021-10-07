@@ -36,7 +36,7 @@ jobs:
         run: |  # TODO: parse the local env for the go versions
           for parent_image in ubuntu:$(lsb_release -sc) centos:8; do
             docker_tag=ghcr.io/${{ github.repository_owner }}/func-e-internal:${parent_image//:/-}
-            # TODO: when done, switch --load to --push
+            # TODO: when done, add --push
             docker buildx build --load \
               --platform linux/amd64,linux/arm64 \
               --build-arg go_stable_release=1_17 \
@@ -45,6 +45,4 @@ jobs:
               --build-arg go_prior_revision=1.16.8 \
               --build-arg parent_image=${parent_image} \
               -t ${docker_tag} .github/workflows
-              # TODO: when done, remove this
-              docker run --rm -v $PWD:/work ${docker_tag} e2e
           done
