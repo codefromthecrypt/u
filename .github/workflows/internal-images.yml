@@ -19,12 +19,12 @@ on:
 # ```
 jobs:
   build-and-push-images:
-    runs-on: ubuntu-focal  # Hard-coding an LTS means maintenance, but only once each 2 years!
+    runs-on: ubuntu-20.04  # Hard-coding an LTS means maintenance, but only once each 2 years!
     strategy:
       matrix:
         include:
           - parent_image: centos:8  #
-          - parent_image: ubuntu:focal  # Always match runs-on!
+          - parent_image: ubuntu:20.04  # Always match runs-on!
 
     steps:
       # Same as doing this locally: echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_TOKEN}" --password-stdin
