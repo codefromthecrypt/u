@@ -4,6 +4,9 @@
 # Notably, this installs make and go, as other build tools aren't referenced by
 # `make e2e` and CGO is disabled (eliminating a gcc dependency).
 #
+# The runtime user `runner` is setup the same as GitHub Actions also. Notably,
+# this allows passwordless `sudo`. Package testing requires root, hence `sudo`.
+#
 # This build is intended for use in a matrix, testing all major Linux platforms
 # supported by Envoy: Ubuntu and CentOS * amd64 and arm64. Notably, this adds
 # CentOS and arm64 which aren't available natively on GitHub Actions. It is
@@ -27,10 +30,11 @@ FROM ${parent_image}
 # To simplify mandatory build-args, we detect the OS here.
 ARG yum="yum -qy"
 ARG apt_get="apt-get -qq -y"
+ARG required_packages="make sudo"
 RUN if [ -f /etc/centos-release ]; then \
-    ${yum} install make && ${yum} clean all; \
+    ${yum} install ${required_packages} && ${yum} clean all; \
     else \
-    ${apt_get} update && ${apt_get} install curl make && ${apt_get} clean; \
+    ${apt_get} update && ${apt_get} install curl ${required_packages} && ${apt_get} clean; \
     fi
 
 # See https://docs.docker.com/engine/reference/builder/#automatic-platform-args-in-the-global-scope
@@ -44,7 +48,8 @@ RUN curl -sSL ${go_stable_url} | tar -xzC /usr/local
 
 # Add and switch to the same user as the GitHub Actions runner.
 ARG user=runner
-RUN useradd -md /home/runner -s /bin/bash -N ${user}
+RUN useradd -md /home/runner -s /bin/bash -N ${user} && \
+    echo "${user} ALL=NOPASSWD: ALL" >> /etc/sudoers
 USER ${user}
 
 # Setup the default GOROOT

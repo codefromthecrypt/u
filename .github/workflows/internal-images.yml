@@ -14,8 +14,7 @@ on:
 # Make is the default entrypoint. To troubleshoot, use /bin/bash:
 # ```bash
 # $ docker run --rm -it -v $PWD:/work --entrypoint /bin/bash ghcr.io/tetratelabs/func-e-internal:centos-8
-# [runner@d37da4601545 /]# cd /work
-# now execute your setup commands!
+# [runner@babce89b5580 work]$
 # ```
 jobs:
   build-and-push-images:
@@ -51,8 +50,8 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v2
 
-      - name: "Export Go revision"
-        run: |  # Ex. 1.17 -> /opt/hostedtoolcache/go/1.17.1/x64 -> go_revision=1.17.1
+      - name: "Export Go revision matching go.mod"
+        run: |  # Ex. 1.17 -> /opt/hostedtoolcache/go/1.17.1/x64 -> GO_REVISION=1.17.1
           go_release=$(sed -n 's/^go //gp' go.mod)
           # Ex. /Users/runner/hostedtoolcache/go/1.17.1/x64
           go_root=$(ls -d "${RUNNER_TOOL_CACHE}"/go/"${go_release}"*/x64|sort -n|tail -1)
