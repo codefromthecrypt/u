@@ -65,7 +65,7 @@ jobs:
 
       - name: "Build and push"
         run: |
-          docker_tag=ghcr.io/${{ github.repository_owner }}/func-e-internal:${PARENT_IMAGE//:/-}
+          docker_tag=ghcr.io/tetratelabs/func-e-internal:${PARENT_IMAGE//:/-}
           docker buildx build --push \
             --platform linux/amd64,linux/arm64 \
             --build-arg parent_image=${PARENT_IMAGE} \
