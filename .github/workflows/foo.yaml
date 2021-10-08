@@ -36,4 +36,5 @@ jobs:
         run: |
           echo $(id -u)
           echo $(id -g)
+          id
           lsb_release -sc
