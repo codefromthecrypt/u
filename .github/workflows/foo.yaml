@@ -33,4 +33,7 @@ jobs:
 
       - name: "lsb_release -sc"
         if: runner.os == 'Linux'
-        run: lsb_release -sc
+        run: |
+          $(id -u)
+          $(id -g)
+          lsb_release -sc
