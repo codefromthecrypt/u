@@ -18,7 +18,6 @@
 # ```bash
 # $ for parent_image in ubuntu:20.04 centos:8; do docker build \
 #                --build-arg parent_image=${parent_image} \
-#                --build-arg uid=$(id -u) --build-arg gid=$(id -g) \
 #                --build-arg go_revision=1.17.1 \
 #                -t func-e-internal:${parent_image//:/-} .github/workflows; done
 # ```
@@ -64,7 +63,8 @@ RUN curl -sSL ${go_stable_url} | tar -xzC /usr/local
 ARG user=runner
 ARG uid=1001
 ARG gid=121
-RUN useradd -u ${uid} -g ${gid} -md /home/runner -s /bin/bash -N ${user} && \
+RUN groupadd -f -g ${gid} docker && \
+    useradd -u ${uid} -g ${gid} -md /home/runner -s /bin/bash -N ${user} && \
     echo "${user} ALL=NOPASSWD: ALL" >> /etc/sudoers
 USER ${user}
 

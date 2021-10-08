@@ -69,7 +69,6 @@ jobs:
           docker buildx build --push \
             --platform linux/amd64,linux/arm64 \
             --build-arg parent_image=${PARENT_IMAGE} \
-            --build-arg uid=$(id -u) --build-arg gid=$(id -g) \
             --build-arg go_revision=${GO_REVISION} \
             -t ${docker_tag} .github/workflows
         env:
