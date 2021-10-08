@@ -14,12 +14,19 @@
 # intended to run arm64 with Travis (as opposed to via emulation). In any case,
 # all matrixes should be pushed for local debugging.
 #
-# Ex.
+# Ex. Build the images:
 # ```bash
-# $ docker build --build-arg go_revision=1.17.1 \
-#                --build-arg parent_image=centos:8 -t func-e-internal:centos-8 \
-#                .github/workflows
-# $ docker run --rm -v $PWD:/work func-e-internal:centos-8 dist
+# $ for parent_image in ubuntu:20.04 centos:8; do docker build \
+#                --build-arg go_revision=1.17.1 \
+#                --build-arg parent_image=${parent_image} \
+#                -t func-e-internal:${parent_image//:/-} .github/workflows; done
+# ```
+#
+# Ex. Build func-e on Ubuntu, then end-to-end test on CentOS
+# ```bash
+# $ docker run --rm -v $PWD:/work func-e-internal:ubuntu-20.04 dist
+# $ docker run --rm -v $PWD:/work func-e-internal:centos-8 -o build/func-e_linux_amd64/func-e e2e
+# ```
 #
 # You can troubleshoot like this:
 # ```bash
