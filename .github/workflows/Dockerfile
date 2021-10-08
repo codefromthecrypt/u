@@ -17,8 +17,9 @@
 # Ex. Build the images:
 # ```bash
 # $ for parent_image in ubuntu:20.04 centos:8; do docker build \
-#                --build-arg go_revision=1.17.1 \
 #                --build-arg parent_image=${parent_image} \
+#                --build-arg uid=$(id -u) --build-arg gid=$(id -g) \
+#                --build-arg go_revision=1.17.1 \
 #                -t func-e-internal:${parent_image//:/-} .github/workflows; done
 # ```
 #
@@ -58,9 +59,12 @@ ARG go_stable_url=https://golang.org/dl/go${go_revision}.linux-${TARGETARCH}.tar
 # Extract into the default GOROOT
 RUN curl -sSL ${go_stable_url} | tar -xzC /usr/local
 
-# Add and switch to the same user as the GitHub Actions runner.
+# Add and switch to the same user as the GitHub Actions runner. This prevents
+# ownership problems writing to volumes from the host to docker and visa versa.
 ARG user=runner
-RUN useradd -md /home/runner -s /bin/bash -N ${user} && \
+ARG uid=1001
+ARG gid=121
+RUN useradd -u ${uid} -g ${gid} -md /home/runner -s /bin/bash -N ${user} && \
     echo "${user} ALL=NOPASSWD: ALL" >> /etc/sudoers
 USER ${user}
 
