@@ -33,14 +33,14 @@ FROM ${parent_image}
 # missing libgcab1-devel package. The workaround is to `make dist` with Ubuntu.
 ARG centos_packages="make sudo"
 # Ubuntu runs check, dist, and e2e, so needs more packages.
-ARG ubuntu_packages="make sudo curl make sudo git zip wixl msitools osslsigncode"
-# Install the OS dependencies except go
-ARG dnf="dnf -qy"
-ARG apt_get="apt-get -qq -y"
+ARG ubuntu_packages="make sudo curl git zip wixl osslsigncode"
 RUN if [ -f /etc/centos-release ]; then \
-    ${dnf} install ${centos_packages} && ${dnf} clean all; \
+    # Use Dandified YUM on CentOS >=8. \
+    dnf="dnf -qy" && ${dnf} install ${centos_packages} && ${dnf} clean all; \
     else \
-    ${apt_get} update && ${apt_get} install curl ${ubuntu_packages} && ${apt_get} clean; \
+    # Use noninteractive to prevent hangs asking about timezone on Ubuntu. \
+    export DEBIAN_FRONTEND=noninteractive && apt_get="apt-get -qq -y" && \
+    ${apt_get} update && ${apt_get} install ${ubuntu_packages} && ${apt_get} clean; \
     fi
 
 # See https://docs.docker.com/engine/reference/builder/#automatic-platform-args-in-the-global-scope
