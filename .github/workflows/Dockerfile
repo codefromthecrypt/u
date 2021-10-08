@@ -40,7 +40,7 @@ FROM ${parent_image}
 # missing libgcab1-devel package. The workaround is to `make dist` with Ubuntu.
 ARG centos_packages="make sudo"
 # Ubuntu runs check, dist, and e2e, so needs more packages.
-ARG ubuntu_packages="make sudo curl git zip wixl osslsigncode"
+ARG ubuntu_packages="make sudo curl git zip wixl msitools osslsigncode"
 RUN if [ -f /etc/centos-release ]; then \
     # Use Dandified YUM on CentOS >=8. \
     dnf="dnf -qy" && ${dnf} install ${centos_packages} && ${dnf} clean all; \
