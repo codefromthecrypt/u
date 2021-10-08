@@ -11,9 +11,14 @@ on:
 # This builds images and pushes them to ghcr.io/tetratelabs/func-e-internal:$tag
 # Using these in tests and as a parent (FROM) avoids docker.io rate-limits particularly on pull requests.
 #
+# To test this, try running end-to-end (e2e) tests!
+# ```bash
+# $ docker run --pull always --rm -v $PWD:/work ghcr.io/codefromthecrypt/func-e-internal:centos-8 e2e
+# ```
+#
 # Make is the default entrypoint. To troubleshoot, use /bin/bash:
 # ```bash
-# $ docker run --rm -it -v $PWD:/work --entrypoint /bin/bash ghcr.io/tetratelabs/func-e-internal:centos-8
+# $ docker run --pull always --rm -v $PWD:/work -it --entrypoint /bin/bash ghcr.io/tetratelabs/func-e-internal:centos-8
 # [runner@babce89b5580 work]$
 # ```
 jobs:
@@ -22,7 +27,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - parent_image: centos:8  #
+          - parent_image: centos:8  # Envoy requires CentOS >=8. See tetratelabs/archive-envoy#17
           - parent_image: ubuntu:20.04  # Always match runs-on!
 
     steps:
