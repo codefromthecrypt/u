@@ -38,3 +38,4 @@ jobs:
           echo $(id -g)
           id
           lsb_release -sc
+          env|grep GOROOT_
