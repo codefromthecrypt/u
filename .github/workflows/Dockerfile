@@ -41,7 +41,8 @@ ARG parent_image=centos:8
 # Actions runner. For example, TARGETARCH in Docker is "amd64" whereas GitHub
 # actions uses "x64". Moreover, depending on use, case format will change.
 # Docker lacks variable substitution options to do this, so we fake it with
-# stages. See https://github.com/moby/moby/issues/42904
+# stages. Build args in this file would simplify dramatically once substitution
+# is implemented. See https://github.com/moby/moby/issues/42904
 FROM $parent_image as base-amd64
 ARG arch=X64
 ARG arch_lc=x64

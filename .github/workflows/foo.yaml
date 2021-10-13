@@ -39,3 +39,10 @@ jobs:
           id
           lsb_release -sc
           env|grep GOROOT_
+
+      - name: Install Car
+        if: runner.os == 'Linux'
+        run: |
+          gh release download -R tetratelabs/car v1.0.0 -p '*linux_amd64.tar.gz'
+          tar -C /usr/local/bin -xzf *.tar.gz && rm *.tar.gz
+          car
