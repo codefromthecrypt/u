@@ -46,3 +46,4 @@ jobs:
           car_version=1.0.0
           car_url=https://github.com/tetratelabs/car/releases/download/v${car_version}/car_${car_version}_linux_amd64.tar.gz
           curl -sSL ${car_url} | tar -C /usr/local/bin -xzf -
+          car
