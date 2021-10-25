@@ -2,10 +2,7 @@
 ---
 name: internal-images
 
-# Refresh the tags once a day. This limits impact of rate-limited images. See RATIONALE.md
 on:
-  schedule:
-    - cron: "23 3 * * *"
   workflow_dispatch:  # Allows manual refresh
 
 # This builds images and pushes them to ghcr.io/tetratelabs/func-e-internal:$tag
