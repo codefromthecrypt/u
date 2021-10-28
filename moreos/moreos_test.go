@@ -18,13 +18,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/shirou/gopsutil/v3/process"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"testing"
 
-	"github.com/shirou/gopsutil/v3/process"
 	"github.com/stretchr/testify/require"
 )
 
