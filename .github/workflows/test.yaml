@@ -1,0 +1,44 @@
+# `name` value will appear "as is" in the badge.
+# See https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#adding-a-workflow-status-badge-to-your-repository
+# yamllint --format github .github/workflows/test.yaml
+---
+name: "test"
+
+defaults:
+  run:  # use bash for all operating systems unless overridden
+    shell: bash
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version of the release. Ex v1.18.3 or v1.18.3_debug
+        required: true
+
+jobs:
+  # Note: We don't test arm64 on release as it is unlikely to fail and too much effort.
+  test:
+    name: "Test Envoy® Archive (${{ matrix.os }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # Non-deprecated from https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
+        include:
+          - os: ubuntu-18.04
+          - os: ubuntu-20.04
+          - os: macos-10.15
+          - os: macos-11
+          - os: windows-2019
+          - os: windows-2022
+
+    steps:
+      - name: "Extract `envoy` binary from GitHub release assets"
+        run: |  # https://docs.github.com/en/actions/learn-github-actions/environment-variables
+          os=$(echo ${RUNNER_OS} | tr '[:upper:]' '[:lower:]' | sed 's/macos/darwin/g' )
+          gh release -R tetratelabs/archive-envoy download "${GITHUB_REF#refs/tags/}" -p "envoy-${GITHUB_REF#refs/tags/}-${os}-amd64.tar.xz"
+          tar --strip-components=2 -xpJf *.tar.xz && rm *.tar.xz
+        env:  # authenticate release downloads in case it is a draft (not public)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Run `envoy version`"
+        run: ./envoy version
