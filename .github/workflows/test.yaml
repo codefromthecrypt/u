@@ -35,7 +35,7 @@ jobs:
       - name: "Extract `envoy` binary from GitHub release assets"
         run: |  # https://docs.github.com/en/actions/learn-github-actions/environment-variables
           os=$(echo ${RUNNER_OS} | tr '[:upper:]' '[:lower:]' | sed 's/macos/darwin/g' )
-          gh release -R tetratelabs/archive-envoy download "${GITHUB_REF#refs/tags/}" -p "envoy-${GITHUB_REF#refs/tags/}-${os}-amd64.tar.xz"
+          gh release -R tetratelabs/archive-envoy download "${{ github.event.inputs.version }}" -p "*-${os}-amd64.tar.xz"
           tar --strip-components=2 -xpJf *.tar.xz && rm *.tar.xz
         env:  # authenticate release downloads in case it is a draft (not public)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
