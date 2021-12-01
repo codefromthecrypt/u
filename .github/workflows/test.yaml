@@ -21,6 +21,7 @@ jobs:
     name: "Test Envoy® Archive (${{ matrix.os }})"
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false  # don't fail fast as sometimes failures are operating system specific
       matrix:
         # Non-deprecated from https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
         include:
@@ -40,5 +41,4 @@ jobs:
         env:  # authenticate release downloads in case it is a draft (not public)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Run `envoy version`"
-        run: ./envoy version
+      - run: ./envoy --version
