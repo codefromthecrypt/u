@@ -40,3 +40,4 @@ go := export PATH="$(goroot)/bin:$${PATH}" && export GOROOT="$(goroot)" && go
 test:
 	$(go) env GOOS
 	$(go) test -benchmem -bench=. ./bench/*bench_test.go
+	$(go) test .
