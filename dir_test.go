@@ -14,6 +14,8 @@ func TestDirError(t *testing.T) {
 		t.Fatalf("cannot write %s", pathToFile)
 	}
 	noteThisIsAFileNotADir, err := os.Open(pathToFile)
+	defer noteThisIsAFileNotADir.Close()
+
 	if err != nil {
 		t.Fatalf("cannot open %s", pathToFile)
 	}
